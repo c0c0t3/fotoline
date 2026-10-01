@@ -6,34 +6,34 @@
 <title>Devis domotique Love Room — Zigbee / Shelly</title>
 <style>
   :root{
-    --bg:#0f1012; --panel:#181a1e; --panel2:#202328; --text:#f3f1ed;
-    --muted:#aaa6a0; --gold:#c7a15a; --gold2:#e2c27f; --line:#32363d;
-    --ok:#76c893; --warn:#e0a458; --danger:#e07a7a; --input:#111317;
+    --bg:#f7f5f0; --panel:#ffffff; --panel2:#fbfaf7; --text:#2b2b2b;
+    --muted:#706d67; --gold:#b28a45; --gold2:#7a5b27; --line:#ddd8cf;
+    --ok:#3f8a5a; --warn:#a86d1f; --danger:#b95050; --input:#ffffff;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(180deg,#0b0c0e,#121418 40%,#0f1012);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#fbfaf7,#f4f0e9 42%,#f7f5f0);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
   .wrap{max-width:1500px;margin:auto;padding:28px}
   h1{font-size:30px;margin:0 0 6px;color:var(--gold2)}
   h2{font-size:20px;margin:30px 0 12px;color:var(--gold2)}
   h3{font-size:16px;margin:0 0 8px}
   .sub{color:var(--muted);margin-bottom:22px}
-  .card{background:rgba(24,26,30,.96);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 12px 28px rgba(0,0,0,.18)}
-  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:0;z-index:5;background:rgba(15,16,18,.94);backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid #24272d}
+  .card{background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 10px 26px rgba(87,70,42,.08)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:0;z-index:5;background:rgba(247,245,240,.95);backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid #ddd8cf}
   button{background:var(--gold);border:0;color:#17130b;font-weight:700;padding:10px 14px;border-radius:10px;cursor:pointer}
-  button.secondary{background:#2b2f36;color:var(--text);border:1px solid #3b4048}
-  button.danger{background:#503033;color:#ffd9d9}
+  button.secondary{background:#ffffff;color:var(--text);border:1px solid #cfc8bc}
+  button.danger{background:#f5dfdf;color:#8f3737}
   .totals{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-  .totalBox{background:#17191d;border:1px solid #343842;border-radius:10px;padding:8px 12px;min-width:150px}
+  .totalBox{background:#ffffff;border:1px solid #d9d3c9;border-radius:10px;padding:8px 12px;min-width:150px}
   .totalBox b{display:block;font-size:18px;color:var(--gold2)}
   .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px}
   .smallgrid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
   table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-  th{background:#25282e;color:#f6e6c0;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:11px;border-bottom:1px solid var(--line)}
+  th{background:#eee8dc;color:#664b1f;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:11px;border-bottom:1px solid var(--line)}
   td{padding:11px;border-bottom:1px solid var(--line);vertical-align:top}
   tr:last-child td{border-bottom:0}
   .zone{font-weight:800;color:var(--gold2);min-width:180px}
-  .need{color:#dedbd5;font-size:13px}
-  .product{display:grid;grid-template-columns:auto 1fr 84px 108px 110px;gap:8px;align-items:center;background:#14161a;border:1px solid #2f333a;border-radius:10px;padding:9px;margin-bottom:8px}
+  .need{color:#4e4b47;font-size:13px}
+  .product{display:grid;grid-template-columns:auto 1fr 84px 108px 110px;gap:8px;align-items:center;background:#fbfaf7;border:1px solid #ddd8cf;border-radius:10px;padding:9px;margin-bottom:8px}
   .product:last-child{margin-bottom:0}
   .product.selected{border-color:var(--gold);box-shadow:0 0 0 1px rgba(199,161,90,.22) inset}
   .product .name{font-weight:700}
@@ -41,16 +41,18 @@
   .product a{color:var(--gold2);text-decoration:none}
   .product a:hover{text-decoration:underline}
   input[type="checkbox"]{width:19px;height:19px;accent-color:var(--gold)}
-  input[type="number"], input[type="text"], select, textarea{width:100%;background:var(--input);border:1px solid #3a3f47;color:var(--text);border-radius:8px;padding:8px}
+  input[type="number"], input[type="text"], select, textarea{width:100%;background:var(--input);border:1px solid #cbc5bb;color:var(--text);border-radius:8px;padding:8px}
   input[type="number"]{text-align:right}
   .subtotal{text-align:right;font-weight:800;color:var(--gold2);white-space:nowrap}
-  .tag{display:inline-block;font-size:11px;border:1px solid #3b4048;border-radius:999px;padding:2px 7px;color:#d4d0c9;margin-top:4px}
-  .tag.z{border-color:#416b72;color:#9ed9df}
-  .tag.s{border-color:#695539;color:#e6c687}
+  .tag{display:inline-block;font-size:11px;border:1px solid #cfc8bc;border-radius:999px;padding:2px 7px;color:#5e5a54;margin-top:4px}
+  .tag.z{border-color:#91b9be;color:#28656d;background:#edf7f8}
+  .tag.s{border-color:#ccb681;color:#7b5a21;background:#faf5e9}
   .note{font-size:12px;color:var(--muted);margin-top:4px}
-  .notice{padding:10px 12px;border-radius:10px;background:#2a2217;border:1px solid #594623;color:#f3d49a;margin:10px 0;display:none}
+  .why{font-size:12px;line-height:1.35;margin-top:7px;padding:8px 9px;background:#f4efe4;border-left:3px solid var(--gold);border-radius:7px;color:#514a40}
+  .why strong{color:#7a5b27}
+  .notice{padding:10px 12px;border-radius:10px;background:#fff8e8;border:1px solid #e2c78c;color:#74561e;margin:10px 0;display:none}
   .notice.show{display:block}
-  .quote-row{display:grid;grid-template-columns:1.5fr 80px 110px 110px;gap:8px;padding:8px 0;border-bottom:1px dashed #343842}
+  .quote-row{display:grid;grid-template-columns:1.5fr 80px 110px 110px;gap:8px;padding:8px 0;border-bottom:1px dashed #ddd8cf}
   .quote-row:last-child{border-bottom:0}
   .summary-empty{color:var(--muted);font-style:italic}
   .muted{color:var(--muted)}
@@ -106,14 +108,14 @@
   <section class="card">
     <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
       <div>
-        <h2 style="margin:0">Rubans LED / alimentations 24 V / profilés</h2>
-        <div class="note">Références adaptées aux longueurs prévues. Quantités exprimées en rouleaux de 5 m ou pièces de 1 m pour les profilés.</div>
+        <h2 style="margin:0">Rubans LED / alimentations 24 V</h2>
+        <div class="note">Références adaptées aux longueurs prévues. Quantités de rubans exprimées en rouleaux de 5 m ; alimentations à l’unité.</div>
       </div>
       <button class="secondary no-print" onclick="selectRecommendedLED()">Préselection LED recommandées</button>
     </div>
     <div class="notice show" style="margin-top:12px">💡 <strong>Important :</strong> les grandes longueurs sont à câbler en branches parallèles / avec injections 24 V. Le fait d’avoir une seule arrivée 230 V par zone n’empêche pas de redistribuer le 24 V correctement après l’alimentation.</div>
     <table style="margin-top:12px">
-      <thead><tr><th>Zone</th><th>Préconisation</th><th>Ruban recommandé</th><th>Alternative</th><th>Alimentation / profilé</th></tr></thead>
+      <thead><tr><th>Zone</th><th>Préconisation</th><th>Ruban recommandé</th><th>Alternative</th><th>Alimentation</th></tr></thead>
       <tbody id="ledRows"></tbody>
     </table>
   </section>
@@ -146,7 +148,7 @@
     </div>
   </section>
 
-  <div class="footer-note">Prix publics indicatifs constatés / utilisés dans le comparatif au 01/10/2026. Tous les prix sont modifiables dans le formulaire. Les rubans LED, alimentations 24 V et profilés proposés ci-dessus peuvent maintenant être intégrés au devis ; câbles, connectiques, main-d’œuvre et éventuelles remises pro restent à ajuster.</div>
+  <div class="footer-note">Prix publics indicatifs constatés / utilisés dans le comparatif au 01/10/2026. Tous les prix sont modifiables dans le formulaire. Les rubans LED et alimentations 24 V proposés ci-dessus peuvent être intégrés au devis ; câbles, connectiques, main-d’œuvre et éventuelles remises pro restent à ajuster.</div>
 </div>
 
 <script>
@@ -169,19 +171,17 @@ const products = {
   sunDim:{name:'Sunricher Zigbee phase-cut SR-ZG9101SAC-HP',brand:'Zigbee',price:59.99,link:'https://sunricher.net/fr/produit/zigbee-ac-phase-cut-dimmer/',zigbee:true,desc:'Variateur Zigbee 230 V phase-cut.'},
   proRgbww:{name:'Shelly Pro RGBWW PM',brand:'Shelly',price:68.90,link:'https://www.shelly.com/fr/products/shelly-pro-rgbww-pm',zigbee:false,desc:'Contrôleur RGBWW/RGBW 12–24 V sur rail DIN, 16 A total. Intéressant pour la grosse zone RGBW de la chambre.'},
 
-  ledYphixRgbw20:{name:'Yphix RGBW COB 24 V IP20 — 5 m',brand:'LED',price:94.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-ip20-cob-840-leds',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, 5 m. Ligne lumineuse continue. Largeur 12 mm.'},
-  ledYphixRgbw65:{name:'Yphix RGBW COB 24 V IP65 — 5 m',brand:'LED',price:104.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-cob-840-leds-ip65',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, IP65, 5 m. Largeur 14 mm.'},
-  ledIntegratechRgbw67:{name:'Integratech RGBW 3000 K 24 V IP67 — 5 m',brand:'LED',price:241.63,link:'https://www.blanc-habitat.com/rubans-led/570542-ruban-led-60led-m-5050-24v-ip67-rgbw-3000k-5m-integratech-60rgbw-ip67-3000',zigbee:false,desc:'Gamme pro IP67, RGB + vrai blanc 3000 K, 19,2 W/m, 5 m, garantie 5 ans. Pour zone très exposée à l’humidité.'},
-  ledYphixWarm68:{name:'Yphix COB 3000 K 24 V IP68 — 5 m',brand:'LED',price:62.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip68-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1316 lm/m, IRC >90, IP68, 5 m.'},
-  ledLedkiaWarm65:{name:'Ledkia COB 2700 K 24 V IP65 — 5 m',brand:'LED',price:24.47,link:'https://www.leroymerlin.fr/produits/ruban-led-24v-cob-320-led-m-5m-10w-m-1000lm-m-largeur-10mm-coupe-5cm-ip65-cri90-2700k-blanc-chaud-pcb-silicone-94935847.html',zigbee:false,desc:'Blanc chaud 2700 K, COB 320 LED/m, 10 W/m, 1000 lm/m, IRC 90, IP65, 5 m. Très bon rapport prix/rendu.'},
-  ledYphixWarm20:{name:'Yphix COB 3000 K 24 V IP20 — 5 m',brand:'LED',price:64.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip20-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1364 lm/m, IRC >90, 5 m. Usage sec / plinthes / corniches.'},
+  ledYphixRgbw20:{name:'Yphix RGBW COB 24 V IP20 — 5 m',brand:'LED',price:94.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-ip20-cob-840-leds',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, 5 m. Ligne lumineuse continue. Largeur 12 mm.',reco:'Recommandé en chambre et Secret Room : le COB évite l’effet « points de LED », le vrai canal blanc 3000 K donne un éclairage plus naturel sur la peau, et l’IRC >90 est plus qualitatif.'},
+  ledYphixRgbw65:{name:'Yphix RGBW COB 24 V IP65 — 5 m',brand:'LED',price:104.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-cob-840-leds-ip65',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, IP65, 5 m. Largeur 14 mm.',reco:'Recommandé près de la balnéo : même rendu COB continu et beau blanc chaud que la chambre, avec une protection IP65 adaptée aux zones humides hors exposition directe importante.'},
+  ledIntegratechRgbw67:{name:'Integratech RGBW 3000 K 24 V IP67 — 5 m',brand:'LED',price:241.63,link:'https://www.blanc-habitat.com/rubans-led/570542-ruban-led-60led-m-5050-24v-ip67-rgbw-3000k-5m-integratech-60rgbw-ip67-3000',zigbee:false,desc:'Gamme pro IP67, RGB + vrai blanc 3000 K, 19,2 W/m, 5 m, garantie 5 ans. Pour zone très exposée à l’humidité.',reco:'Alternative premium si la zone balnéo est très exposée aux projections : IP67 et gamme professionnelle, mais coût nettement supérieur.'},
+  ledYphixWarm68:{name:'Yphix COB 3000 K 24 V IP68 — 5 m',brand:'LED',price:62.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip68-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1316 lm/m, IRC >90, IP68, 5 m.',reco:'Recommandé en SDB si vous voulez privilégier la sécurité face à l’humidité : IP68, COB continu et blanc 3000 K qualitatif. Plus puissant et plus cher que nécessaire pour une simple lumière d’ambiance.'},
+  ledLedkiaWarm65:{name:'Ledkia COB 2700 K 24 V IP65 — 5 m',brand:'LED',price:24.47,link:'https://www.leroymerlin.fr/produits/ruban-led-24v-cob-320-led-m-5m-10w-m-1000lm-m-largeur-10mm-coupe-5cm-ip65-cri90-2700k-blanc-chaud-pcb-silicone-94935847.html',zigbee:false,desc:'Blanc chaud 2700 K, COB 320 LED/m, 10 W/m, 1000 lm/m, IRC 90, IP65, 5 m. Très bon rapport prix/rendu.',reco:'Recommandé pour les plinthes : 10 W/m suffit largement pour une ambiance au sol, chauffe moins, consomme moins et le 2700 K donne un rendu cosy. IP65 apporte en plus une petite protection.'},
+  ledYphixWarm20:{name:'Yphix COB 3000 K 24 V IP20 — 5 m',brand:'LED',price:64.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip20-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1364 lm/m, IRC >90, 5 m. Usage sec / plinthes / corniches.',reco:'Alternative plus lumineuse pour zone sèche. Je la choisirais seulement si les plinthes doivent réellement éclairer la pièce ; sinon 10 W/m est plus raisonnable.'},
 
-  psu150:{name:'Mean Well XLG-150-24-A — 150 W / 24 V',brand:'Alimentation',price:39.88,link:'https://www.leroymerlin.fr/produits/transformateur-led-24vdc-150w-ip67-meanwell-xlg-150-24-a-90498036.html',zigbee:false,desc:'Alimentation LED 24 V, 150 W, IP67. Adaptée à env. 100–120 W de rubans avec marge.'},
-  psu200:{name:'Mean Well XLG-200-24-A — 199 W / 24 V',brand:'Alimentation',price:49.30,link:'https://www.leroymerlin.fr/produits/meanwell-mw-xlg-200-24-a-transformateur-led-199-w-24-v-cc-8300-ma-xlg-200-24-a-88301677.html',zigbee:false,desc:'Alimentation LED 24 V, 199 W, IP67. Adaptée aux zones d’environ 125–150 W.'},
-  psu240:{name:'Mean Well HLG-240H-24A — 240 W / 24 V',brand:'Alimentation',price:73.68,link:'https://fr.rs-online.com/web/p/driver-de-led/7647366',zigbee:false,desc:'Alimentation LED pro 24 V, 240 W / 10 A, IP65. Pour charges jusqu’à environ 190 W avec marge de 20 %.'},
-  psu320:{name:'Mean Well HLG-320H-24A — 320 W / 24 V',brand:'Alimentation',price:100.81,link:'https://fr.rs-online.com/web/p/driver-de-led/7382450',zigbee:false,desc:'Alimentation LED pro 24 V, 320 W / 13,34 A, IP65. Recommandée pour la chambre 12 m à 18 W/m (216 W).'},
-  profileMatera:{name:'Yphix profilé alu Matera + diffuseur opaque — 1 m',brand:'Profil',price:0,link:'https://www.leddirect.fr/yphix-profile-ruban-led-matera-aluminium-haut-1m-avec-couvercle-opaque',zigbee:false,desc:'Profilé aluminium pour dissipation et finition. Largeur 15 mm. Prix à renseigner selon finition/distributeur.'},
-  profileTarenta:{name:'Yphix profilé alu Tarenta 45° + diffuseur opaque — 1 m',brand:'Profil',price:9.99,link:'https://www.leddirect.fr/yphix-profile-ruban-led-tarenta-aluminium-angle-droit-1m-avec-couvercle-opaque',zigbee:false,desc:'Profilé aluminium 45°, largeur intérieure env. 12 mm. Idéal plinthes/corniches si le ruban choisi rentre dans le profilé.'}
+  psu150:{name:'Mean Well XLG-150-24-A — 150 W / 24 V',brand:'Alimentation',price:39.88,link:'https://www.leroymerlin.fr/produits/transformateur-led-24vdc-150w-ip67-meanwell-xlg-150-24-a-90498036.html',zigbee:false,desc:'Alimentation LED 24 V, 150 W, IP67. Adaptée à env. 100–120 W de rubans avec marge.',reco:'Recommandée lorsqu’une zone tourne autour de 100 W : elle garde une marge de sécurité sans surdimensionner inutilement l’alimentation.'},
+  psu200:{name:'Mean Well XLG-200-24-A — 199 W / 24 V',brand:'Alimentation',price:49.30,link:'https://www.leroymerlin.fr/produits/meanwell-mw-xlg-200-24-a-transformateur-led-199-w-24-v-cc-8300-ma-xlg-200-24-a-88301677.html',zigbee:false,desc:'Alimentation LED 24 V, 199 W, IP67. Adaptée aux zones d’environ 125–150 W.',reco:'Recommandée pour les zones de 125 à 150 W environ : suffisamment de réserve pour éviter de faire travailler l’alimentation à sa limite.'},
+  psu240:{name:'Mean Well HLG-240H-24A — 240 W / 24 V',brand:'Alimentation',price:73.68,link:'https://fr.rs-online.com/web/p/driver-de-led/7647366',zigbee:false,desc:'Alimentation LED pro 24 V, 240 W / 10 A, IP65. Pour charges jusqu’à environ 190 W avec marge de 20 %.',reco:'Bon choix pour une zone approchant 180–190 W. Mean Well est une référence sérieuse et la réserve de puissance aide à limiter chauffe et vieillissement.'},
+  psu320:{name:'Mean Well HLG-320H-24A — 320 W / 24 V',brand:'Alimentation',price:100.81,link:'https://fr.rs-online.com/web/p/driver-de-led/7382450',zigbee:false,desc:'Alimentation LED pro 24 V, 320 W / 13,34 A, IP65. Recommandée pour la chambre 12 m à 18 W/m (216 W).',reco:'Recommandée pour les 12 m de RGBW de la chambre : 216 W théoriques de ruban, donc 320 W laisse une vraie marge au lieu de faire fonctionner l’alimentation au maximum.'},
 };
 
 const architecture = [
@@ -212,27 +212,27 @@ const ledZones = [
   {
     zone:'ÉTAGE — Chambre plafond RGBW 12 m',
     need:'COB recommandé pour une ligne continue. 12 m × 18 W/m ≈ 216 W : alimentation 320 W conseillée. Avec Shelly Plus RGBW PM (240 W max théorique), la charge est trop proche de la limite pratique : préférer Shelly Pro RGBWW PM ou scinder en 2 contrôleurs.',
-    rec:[['ledYphixRgbw20',3]], alt:[['ledYphixRgbw65',3]], power:[['psu320',1]], profile:[['profileMatera',12]]
+    rec:[['ledYphixRgbw20',3]], alt:[['ledYphixRgbw65',3]], power:[['psu320',1]]
   },
   {
     zone:'ÉTAGE — Balnéo RGBW 7 m',
     need:'Zone humide : minimum IP65 si le ruban est protégé des projections directes. IP67 si exposition plus sévère. 7 m × 18 W/m ≈ 126 W.',
-    rec:[['ledYphixRgbw65',2]], alt:[['ledIntegratechRgbw67',2]], power:[['psu200',1]], profile:[['profileMatera',7]]
+    rec:[['ledYphixRgbw65',2]], alt:[['ledIntegratechRgbw67',2]], power:[['psu200',1]]
   },
   {
     zone:'ÉTAGE — Secret Room RGBW 8 m',
     need:'COB RGBW pour ligne continue et vrai blanc chaud. 8 m × 18 W/m ≈ 144 W. Deux branches de 4 m recommandées.',
-    rec:[['ledYphixRgbw20',2]], alt:[['ledYphixRgbw65',2]], power:[['psu200',1]], profile:[['profileMatera',8]]
+    rec:[['ledYphixRgbw20',2]], alt:[['ledYphixRgbw65',2]], power:[['psu200',1]]
   },
   {
     zone:'RDC — Plinthes blanc chaud 7 m + 3 m',
     need:'Deux branches indépendantes sur la même alimentation. Pour une lumière d’ambiance au sol, 2700–3000 K et IRC ≥90. La référence Ledkia 10 W/m limite puissance et chauffe.',
-    rec:[['ledLedkiaWarm65',2]], alt:[['ledYphixWarm20',2]], power:[['psu150',1],['psu200',1]], profile:[['profileTarenta',10]]
+    rec:[['ledLedkiaWarm65',2]], alt:[['ledYphixWarm20',2]], power:[['psu150',1],['psu200',1]]
   },
   {
     zone:'RDC — SDB blanc chaud ~10 m',
     need:'Humidité : IP65 minimum, IP68 si vous voulez surdimensionner la protection. Pour ~10 m : 100 W avec Ledkia 10 W/m ou 160 W avec Yphix 16 W/m.',
-    rec:[['ledYphixWarm68',2]], alt:[['ledLedkiaWarm65',2]], power:[['psu200',1],['psu150',1]], profile:[['profileMatera',10]]
+    rec:[['ledYphixWarm68',2]], alt:[['ledLedkiaWarm65',2]], power:[['psu200',1],['psu150',1]]
   }
 ];
 
@@ -245,9 +245,10 @@ function makeLine(productId, qty, context, ecosystem){
   const uid = 'l'+(++lineCounter);
   lineRefs.push({uid,productId,context,ecosystem});
   const tag = ecosystem==='Zigbee' ? '<span class="tag z">Zigbee</span>' : ecosystem==='Shelly' ? '<span class="tag s">Shelly</span>' : '<span class="tag">'+ecosystem+'</span>';
+  const why = (ecosystem && ecosystem.toLowerCase().includes('recommand') && p.reco) ? `<div class="why"><strong>Pourquoi recommandé :</strong> ${p.reco}</div>` : '';
   return `<div class="product" id="box-${uid}">
     <input type="checkbox" id="sel-${uid}" data-uid="${uid}" onchange="calc()">
-    <div><div class="name">${p.name}</div><div class="meta">${p.desc}</div>${tag}<br><a href="${p.link}" target="_blank" rel="noopener">Voir le produit ↗</a></div>
+    <div><div class="name">${p.name}</div><div class="meta">${p.desc}</div>${why}${tag}<br><a href="${p.link}" target="_blank" rel="noopener">Voir le produit ↗</a></div>
     <input type="number" min="0" step="1" value="${qty}" id="qty-${uid}" title="Quantité" oninput="calc()">
     <input type="number" min="0" step="0.01" value="${p.price}" id="price-${uid}" title="Prix unitaire HT" oninput="calc()">
     <div class="subtotal" id="sub-${uid}">0,00 €</div>
@@ -267,8 +268,7 @@ function render(){
     const rec = z.rec.map(([id,q])=>makeLine(id,q,z.zone,'LED recommandé')).join('');
     const alt = z.alt.map(([id,q])=>makeLine(id,q,z.zone,'LED alternative')).join('');
     const pwr = z.power.map(([id,q],i)=>makeLine(id,q,z.zone,i===0?'Alimentation recommandée':'Alimentation alternative')).join('');
-    const prof = z.profile.map(([id,q])=>makeLine(id,q,z.zone,'Profil')).join('');
-    return `<tr><td class="zone">${z.zone}</td><td class="need">${z.need}</td><td>${rec}</td><td>${alt}</td><td>${pwr}${prof}</td></tr>`;
+    return `<tr><td class="zone">${z.zone}</td><td class="need">${z.need}</td><td>${rec}</td><td>${alt}</td><td>${pwr}</td></tr>`;
   }).join('');
   calc();
 }
@@ -327,7 +327,7 @@ function selectShelly(){setByEcosystem('Shelly')}
 function selectZigbee(){setByEcosystem('Zigbee')}
 function selectRecommendedLED(){
   lineRefs.forEach(r=>{
-    if(['LED recommandé','LED alternative','Alimentation recommandée','Alimentation alternative','Profil'].includes(r.ecosystem)){
+    if(['LED recommandé','LED alternative','Alimentation recommandée','Alimentation alternative'].includes(r.ecosystem)){
       document.getElementById('sel-'+r.uid).checked = (r.ecosystem==='LED recommandé' || r.ecosystem==='Alimentation recommandée');
     }
   });
