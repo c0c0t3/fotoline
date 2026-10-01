@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Devis domotique Love Room — Zigbee / Shelly</title>
+<style>
+  :root{
+    --bg:#0f1012; --panel:#181a1e; --panel2:#202328; --text:#f3f1ed;
+    --muted:#aaa6a0; --gold:#c7a15a; --gold2:#e2c27f; --line:#32363d;
+    --ok:#76c893; --warn:#e0a458; --danger:#e07a7a; --input:#111317;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b0c0e,#121418 40%,#0f1012);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:1500px;margin:auto;padding:28px}
+  h1{font-size:30px;margin:0 0 6px;color:var(--gold2)}
+  h2{font-size:20px;margin:30px 0 12px;color:var(--gold2)}
+  h3{font-size:16px;margin:0 0 8px}
+  .sub{color:var(--muted);margin-bottom:22px}
+  .card{background:rgba(24,26,30,.96);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:0;z-index:5;background:rgba(15,16,18,.94);backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid #24272d}
+  button{background:var(--gold);border:0;color:#17130b;font-weight:700;padding:10px 14px;border-radius:10px;cursor:pointer}
+  button.secondary{background:#2b2f36;color:var(--text);border:1px solid #3b4048}
+  button.danger{background:#503033;color:#ffd9d9}
+  .totals{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .totalBox{background:#17191d;border:1px solid #343842;border-radius:10px;padding:8px 12px;min-width:150px}
+  .totalBox b{display:block;font-size:18px;color:var(--gold2)}
+  .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px}
+  .smallgrid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+  table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  th{background:#25282e;color:#f6e6c0;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:11px;border-bottom:1px solid var(--line)}
+  td{padding:11px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .zone{font-weight:800;color:var(--gold2);min-width:180px}
+  .need{color:#dedbd5;font-size:13px}
+  .product{display:grid;grid-template-columns:auto 1fr 84px 108px 110px;gap:8px;align-items:center;background:#14161a;border:1px solid #2f333a;border-radius:10px;padding:9px;margin-bottom:8px}
+  .product:last-child{margin-bottom:0}
+  .product.selected{border-color:var(--gold);box-shadow:0 0 0 1px rgba(199,161,90,.22) inset}
+  .product .name{font-weight:700}
+  .product .meta{font-size:12px;color:var(--muted)}
+  .product a{color:var(--gold2);text-decoration:none}
+  .product a:hover{text-decoration:underline}
+  input[type="checkbox"]{width:19px;height:19px;accent-color:var(--gold)}
+  input[type="number"], input[type="text"], select, textarea{width:100%;background:var(--input);border:1px solid #3a3f47;color:var(--text);border-radius:8px;padding:8px}
+  input[type="number"]{text-align:right}
+  .subtotal{text-align:right;font-weight:800;color:var(--gold2);white-space:nowrap}
+  .tag{display:inline-block;font-size:11px;border:1px solid #3b4048;border-radius:999px;padding:2px 7px;color:#d4d0c9;margin-top:4px}
+  .tag.z{border-color:#416b72;color:#9ed9df}
+  .tag.s{border-color:#695539;color:#e6c687}
+  .note{font-size:12px;color:var(--muted);margin-top:4px}
+  .notice{padding:10px 12px;border-radius:10px;background:#2a2217;border:1px solid #594623;color:#f3d49a;margin:10px 0;display:none}
+  .notice.show{display:block}
+  .quote-row{display:grid;grid-template-columns:1.5fr 80px 110px 110px;gap:8px;padding:8px 0;border-bottom:1px dashed #343842}
+  .quote-row:last-child{border-bottom:0}
+  .summary-empty{color:var(--muted);font-style:italic}
+  .muted{color:var(--muted)}
+  .right{text-align:right}
+  .arch{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}
+  .arch .product{grid-template-columns:auto 1fr 80px 108px 110px}
+  .footer-note{font-size:12px;color:var(--muted);margin-top:18px}
+  @media (max-width:1000px){
+    .product{grid-template-columns:auto 1fr 72px 96px}.product .subtotal{grid-column:2/5}.grid,.smallgrid,.arch{grid-template-columns:1fr}.totals{margin-left:0}.toolbar{position:static}
+    table,thead,tbody,tr,th,td{display:block} thead{display:none} tr{border-bottom:1px solid var(--line)} td{border:0;padding:8px 10px}.zone{padding-top:14px}
+  }
+  @media print{
+    body{background:white;color:#111}.wrap{max-width:none;padding:0}.toolbar,.no-print{display:none!important}.card,table{box-shadow:none;border-color:#bbb;background:white}.product{background:white;border-color:#bbb}.product a{color:#111}.zone,h1,h2,.subtotal,.totalBox b{color:#6d5527}.sub,.muted,.note,.meta{color:#555}.totalBox{border-color:#bbb;background:#fff}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LOVE ROOM — Formulaire de devis domotique</h1>
+  <div class="sub">Comparatif interactif Zigbee / Shelly • prix unitaires modifiables • quantités • total HT/TTC • liens produits</div>
+
+  <div class="toolbar">
+    <button onclick="selectShelly()">Préselection 100% Shelly</button>
+    <button onclick="selectZigbee()">Préselection Zigbee</button>
+    <button class="secondary" onclick="clearSelection()">Tout décocher</button>
+    <button class="secondary" onclick="saveLocal()">Sauvegarder</button>
+    <button class="secondary" onclick="loadLocal()">Recharger</button>
+    <button class="secondary" onclick="exportCSV()">Exporter CSV</button>
+    <button class="secondary" onclick="window.print()">Imprimer / PDF</button>
+    <div class="totals">
+      <div class="totalBox"><span>Total HT</span><b id="totalHT">0,00 €</b></div>
+      <div class="totalBox"><span>TVA</span><b id="totalTVA">0,00 €</b></div>
+      <div class="totalBox"><span>Total TTC</span><b id="totalTTC">0,00 €</b></div>
+    </div>
+  </div>
+
+  <div id="zigbeeWarning" class="notice">⚠️ Vous avez sélectionné au moins un produit Zigbee sans le coordinateur <strong>Home Assistant Connect ZBT‑2</strong>.</div>
+  <div id="haWarning" class="notice">⚠️ Vous avez sélectionné des écrans / automatisations Home Assistant mais pas le <strong>Home Assistant Green</strong>.</div>
+
+  <section class="card">
+    <h2 style="margin-top:0">Architecture / bridges / écrans</h2>
+    <div class="arch" id="archItems"></div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-top:0">Équipements par zone</h2>
+    <table>
+      <thead><tr><th>Zone / besoin</th><th>Contraintes / notes</th><th>Produits Zigbee</th><th>Produits Shelly</th></tr></thead>
+      <tbody id="zoneRows"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0">Rubans LED / alimentations 24 V / profilés</h2>
+        <div class="note">Références adaptées aux longueurs prévues. Quantités exprimées en rouleaux de 5 m ou pièces de 1 m pour les profilés.</div>
+      </div>
+      <button class="secondary no-print" onclick="selectRecommendedLED()">Préselection LED recommandées</button>
+    </div>
+    <div class="notice show" style="margin-top:12px">💡 <strong>Important :</strong> les grandes longueurs sont à câbler en branches parallèles / avec injections 24 V. Le fait d’avoir une seule arrivée 230 V par zone n’empêche pas de redistribuer le 24 V correctement après l’alimentation.</div>
+    <table style="margin-top:12px">
+      <thead><tr><th>Zone</th><th>Préconisation</th><th>Ruban recommandé</th><th>Alternative</th><th>Alimentation / profilé</th></tr></thead>
+      <tbody id="ledRows"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-top:0">Options complémentaires</h2>
+    <div id="optionItems" class="arch"></div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-top:0">Résumé du devis</h2>
+    <div class="smallgrid no-print" style="margin-bottom:14px">
+      <div><label>TVA (%)</label><input id="vatRate" type="number" min="0" step="0.1" value="20"></div>
+      <div><label>Remise globale (%)</label><input id="discount" type="number" min="0" max="100" step="0.1" value="0"></div>
+      <div><label>Nom du devis</label><input id="quoteName" type="text" value="Love Room - Domotique"></div>
+      <div><label>Date</label><input id="quoteDate" type="text"></div>
+    </div>
+    <div id="summary"><div class="summary-empty">Aucun produit sélectionné.</div></div>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;margin-top:16px">
+      <div>
+        <label>Notes / fournisseurs / remises</label>
+        <textarea id="notes" rows="5" placeholder="Ex : remise Decolighting, prix négocié, alimentation 24 V à chiffrer séparément…"></textarea>
+      </div>
+      <div>
+        <div class="quote-row"><strong>Sous-total HT</strong><span></span><span></span><strong class="right" id="sumHT">0,00 €</strong></div>
+        <div class="quote-row"><span>Remise</span><span></span><span></span><strong class="right" id="sumDiscount">0,00 €</strong></div>
+        <div class="quote-row"><span>TVA</span><span></span><span></span><strong class="right" id="sumTVA">0,00 €</strong></div>
+        <div class="quote-row"><strong>Total TTC</strong><span></span><span></span><strong class="right" id="sumTTC">0,00 €</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">Prix publics indicatifs constatés / utilisés dans le comparatif au 01/10/2026. Tous les prix sont modifiables dans le formulaire. Les rubans LED, alimentations 24 V et profilés proposés ci-dessus peuvent maintenant être intégrés au devis ; câbles, connectiques, main-d’œuvre et éventuelles remises pro restent à ajuster.</div>
+</div>
+
+<script>
+const products = {
+  green:{name:'Home Assistant Green',brand:'HA',price:179,link:'https://www.home-assistant.io/green/',bridge:false,zigbee:false,desc:'Serveur Home Assistant prêt à l’emploi. Nécessaire pour votre UI Home Assistant personnalisée.'},
+  zbt2:{name:'Home Assistant Connect ZBT-2',brand:'HA',price:45,link:'https://www.home-assistant.io/connect/zbt-2/',bridge:true,zigbee:true,desc:'Coordinateur Zigbee/Thread USB. Nécessaire dès qu’un appareil Zigbee est utilisé.'},
+  x2i:{name:'Shelly Wall Display X2i',brand:'Shelly',price:224.90,link:'https://www.shelly.com/fr/products/shelly-wall-display-x2i-black',bridge:false,zigbee:false,desc:'Écran mural principal 6,95". Peut afficher votre dashboard Home Assistant.'},
+  x1i:{name:'Shelly Wall Display X1i',brand:'Shelly',price:188.90,link:'https://www.shelly.com/fr/products/shelly-wall-display-x1i-black',bridge:false,zigbee:false,desc:'Petit écran mural 4". Intéressant au chevet pour 4 gros boutons/scènes.'},
+  e3:{name:'MiBoxer E3-ZR',brand:'Zigbee',price:14.99,link:'https://www.domadoo.fr/fr/controleur-ruban-led-zigbee/9296-miboxer-e3-zr-controleur-led-zigbee-tuya-30-24-ghz-3-en-1.html',zigbee:true,desc:'Contrôleur RGB/RGBW/RGB+CCT 12–24 V, Zigbee + RF 2,4 GHz.'},
+  e2:{name:'MiBoxer E2-ZR',brand:'Zigbee',price:14.99,link:'https://www.domadoo.fr/en/zigbee-led-controller/9295-miboxer-e2-zr-2-in-1-zigbee-30-led-controller-tuya-24-ghz.html',zigbee:true,desc:'Contrôleur blanc mono / CCT 12–24 V.'},
+  rgbw:{name:'Shelly Plus RGBW PM',brand:'Shelly',price:30.90,link:'https://www.shelly.com/fr/products/shelly-plus-rgbw-pm-1',zigbee:false,desc:'RGBW / RGB / 4 sorties blanches, 12–24 V, 4 A/canal, 10 A total.'},
+  nodonRelay:{name:'NodOn SIN-4-2-20',brand:'Zigbee',price:38.17,link:'https://www.domadoo.fr/fr/peripheriques/5689-nodon-sin-4-2-20-micromodule-commutateur-2-canaux-zigbee-2x3a-3700313925225.html',zigbee:true,desc:'Relais Zigbee 230 V, 2 canaux 3 A.'},
+  shelly1pm:{name:'Shelly 1PM Gen4',brand:'Shelly',price:21.90,link:'https://www.shelly.com/fr/products/shelly-1pm-gen4',zigbee:false,desc:'Relais 230 V + mesure. À utiliser en Wi‑Fi local pour rester sans bridge.'},
+  nodonFP:{name:'NodOn SIN-4-FP-21',brand:'Zigbee',price:33.92,link:'https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html',zigbee:true,desc:'Module chauffage fil pilote 4/6 ordres + mesure énergie.'},
+  nodonRS:{name:'NodOn SIN-4-RS-20',brand:'Zigbee',price:38.17,link:'https://www.domadoo.fr/fr/volet-roulant-connecte-store/5690-nodon-sin-4-rs-20-module-volet-roulant-zigbee-compatible-home-assistant-3700313925201.html',zigbee:true,desc:'Micromodule volet roulant Zigbee 3.0.'},
+  shelly2pm:{name:'Shelly 2PM Gen4',brand:'Shelly',price:29.90,link:'https://www.shelly.com/fr/products/shelly-2pm-gen4',zigbee:false,desc:'2 canaux, mode volet roulant, mesure, Wi‑Fi/Zigbee/Matter.'},
+  sonoffDoor:{name:'Sonoff SNZB-04P',brand:'Zigbee',price:16.22,link:'https://sonoff.tech/fr-fr/products/sonoff-zigbee-door-window-sensor-snzb-04p',zigbee:true,desc:'Capteur ouverture Zigbee 3.0.'},
+  shellyDoor:{name:'Shelly BLU Door/Window',brand:'Shelly',price:16.90,link:'https://www.shelly.com/fr/products/shelly-blu-door-window-1',zigbee:false,desc:'Capteur ouverture Bluetooth/BTHome. Un Shelly Gen2+ alimenté peut servir de proxy Bluetooth.'},
+  dimmer:{name:'Shelly Dimmer Gen3',brand:'Shelly',price:29.90,link:'https://www.shelly.com/fr/products/shelly-dimmer-gen3',zigbee:false,desc:'Variateur 230 V pour spots/plafonds LED dimmables compatibles.'},
+  sunDim:{name:'Sunricher Zigbee phase-cut SR-ZG9101SAC-HP',brand:'Zigbee',price:59.99,link:'https://sunricher.net/fr/produit/zigbee-ac-phase-cut-dimmer/',zigbee:true,desc:'Variateur Zigbee 230 V phase-cut.'},
+  proRgbww:{name:'Shelly Pro RGBWW PM',brand:'Shelly',price:68.90,link:'https://www.shelly.com/fr/products/shelly-pro-rgbww-pm',zigbee:false,desc:'Contrôleur RGBWW/RGBW 12–24 V sur rail DIN, 16 A total. Intéressant pour la grosse zone RGBW de la chambre.'},
+
+  ledYphixRgbw20:{name:'Yphix RGBW COB 24 V IP20 — 5 m',brand:'LED',price:94.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-ip20-cob-840-leds',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, 5 m. Ligne lumineuse continue. Largeur 12 mm.'},
+  ledYphixRgbw65:{name:'Yphix RGBW COB 24 V IP65 — 5 m',brand:'LED',price:104.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-rgbw-cob-840-leds-ip65',zigbee:false,desc:'RGBW + vrai blanc chaud 3000 K, COB 840 LED/m, 18 W/m, IRC >90, IP65, 5 m. Largeur 14 mm.'},
+  ledIntegratechRgbw67:{name:'Integratech RGBW 3000 K 24 V IP67 — 5 m',brand:'LED',price:241.63,link:'https://www.blanc-habitat.com/rubans-led/570542-ruban-led-60led-m-5050-24v-ip67-rgbw-3000k-5m-integratech-60rgbw-ip67-3000',zigbee:false,desc:'Gamme pro IP67, RGB + vrai blanc 3000 K, 19,2 W/m, 5 m, garantie 5 ans. Pour zone très exposée à l’humidité.'},
+  ledYphixWarm68:{name:'Yphix COB 3000 K 24 V IP68 — 5 m',brand:'LED',price:62.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip68-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1316 lm/m, IRC >90, IP68, 5 m.'},
+  ledLedkiaWarm65:{name:'Ledkia COB 2700 K 24 V IP65 — 5 m',brand:'LED',price:24.47,link:'https://www.leroymerlin.fr/produits/ruban-led-24v-cob-320-led-m-5m-10w-m-1000lm-m-largeur-10mm-coupe-5cm-ip65-cri90-2700k-blanc-chaud-pcb-silicone-94935847.html',zigbee:false,desc:'Blanc chaud 2700 K, COB 320 LED/m, 10 W/m, 1000 lm/m, IRC 90, IP65, 5 m. Très bon rapport prix/rendu.'},
+  ledYphixWarm20:{name:'Yphix COB 3000 K 24 V IP20 — 5 m',brand:'LED',price:64.99,link:'https://www.leddirect.fr/yphix-ruban-led-5m-24v-3000k-ip20-2400-cob-leds',zigbee:false,desc:'Blanc chaud 3000 K, COB 480 LED/m, 16 W/m, 1364 lm/m, IRC >90, 5 m. Usage sec / plinthes / corniches.'},
+
+  psu150:{name:'Mean Well XLG-150-24-A — 150 W / 24 V',brand:'Alimentation',price:39.88,link:'https://www.leroymerlin.fr/produits/transformateur-led-24vdc-150w-ip67-meanwell-xlg-150-24-a-90498036.html',zigbee:false,desc:'Alimentation LED 24 V, 150 W, IP67. Adaptée à env. 100–120 W de rubans avec marge.'},
+  psu200:{name:'Mean Well XLG-200-24-A — 199 W / 24 V',brand:'Alimentation',price:49.30,link:'https://www.leroymerlin.fr/produits/meanwell-mw-xlg-200-24-a-transformateur-led-199-w-24-v-cc-8300-ma-xlg-200-24-a-88301677.html',zigbee:false,desc:'Alimentation LED 24 V, 199 W, IP67. Adaptée aux zones d’environ 125–150 W.'},
+  psu240:{name:'Mean Well HLG-240H-24A — 240 W / 24 V',brand:'Alimentation',price:73.68,link:'https://fr.rs-online.com/web/p/driver-de-led/7647366',zigbee:false,desc:'Alimentation LED pro 24 V, 240 W / 10 A, IP65. Pour charges jusqu’à environ 190 W avec marge de 20 %.'},
+  psu320:{name:'Mean Well HLG-320H-24A — 320 W / 24 V',brand:'Alimentation',price:100.81,link:'https://fr.rs-online.com/web/p/driver-de-led/7382450',zigbee:false,desc:'Alimentation LED pro 24 V, 320 W / 13,34 A, IP65. Recommandée pour la chambre 12 m à 18 W/m (216 W).'},
+  profileMatera:{name:'Yphix profilé alu Matera + diffuseur opaque — 1 m',brand:'Profil',price:0,link:'https://www.leddirect.fr/yphix-profile-ruban-led-matera-aluminium-haut-1m-avec-couvercle-opaque',zigbee:false,desc:'Profilé aluminium pour dissipation et finition. Largeur 15 mm. Prix à renseigner selon finition/distributeur.'},
+  profileTarenta:{name:'Yphix profilé alu Tarenta 45° + diffuseur opaque — 1 m',brand:'Profil',price:9.99,link:'https://www.leddirect.fr/yphix-profile-ruban-led-tarenta-aluminium-angle-droit-1m-avec-couvercle-opaque',zigbee:false,desc:'Profilé aluminium 45°, largeur intérieure env. 12 mm. Idéal plinthes/corniches si le ruban choisi rentre dans le profilé.'}
+};
+
+const architecture = [
+  {id:'green', qty:1}, {id:'zbt2',qty:1}, {id:'x2i',qty:2}, {id:'x1i',qty:1}
+];
+
+const zones = [
+  {zone:'ÉTAGE — Chambre RGBW 12 m', need:'1 seule arrivée électrique. RGBW + variation. Prévoir 2×6 m ou 3×4 m en parallèle / injections 24 V.', z:[['e3',1]], s:[['rgbw',1]]},
+  {zone:'ÉTAGE — Balnéo RGBW 7 m + spots', need:'Ruban + spots à commander ensemble. Deux sorties distinctes recommandées ; même bouton/scène possible.', z:[['e3',1],['nodonRelay',1]], s:[['rgbw',1],['shelly1pm',1]]},
+  {zone:'ÉTAGE — Secret Room RGBW 8 m', need:'1 arrivée. Préférer 2×4 m en parallèle / injection.', z:[['e3',1]], s:[['rgbw',1]]},
+  {zone:'ÉTAGE — Clim Samsung WindFree', need:'Utiliser SmartThings natif pour programmation / mise en température avant arrivée. Pas de module Zigbee ou Shelly nécessaire.', z:[], s:[]},
+  {zone:'RDC — Plinthes blanc chaud 7 m + 3 m', need:'Deux branches en parallèle sur une alimentation 24 V commune. Variation souhaitable.', z:[['e2',1]], s:[['rgbw',1]]},
+  {zone:'RDC — 7 spots LED encastrés', need:'Circuit 230 V. Les spots doivent être câblés en parallèle électriquement. ON/OFF ou variateur si spots dimmables.', z:[['nodonRelay',1]], s:[['shelly1pm',1]]},
+  {zone:'RDC — SDB ruban blanc chaud', need:'Ruban 24 V IP65/IP67 selon emplacement ; alimentation/contrôleur accessibles et hors volumes interdits.', z:[['e2',1]], s:[['rgbw',1]]},
+  {zone:'RDC — Sèche-serviettes', need:'Si fil pilote : module dédié préférable. Sinon coupure secteur possible seulement si l’appareil conserve correctement ses réglages.', z:[['nodonFP',1]], s:[['shelly1pm',1]]},
+  {zone:'RDC — Radiateur inertie 2000 W', need:'Même logique : fil pilote = solution dédiée ; sinon relais Shelly sous réserve du câblage/protection et compatibilité radiateur.', z:[['nodonFP',1]], s:[['shelly1pm',1]]},
+  {zone:'RDC — Volet roulant', need:'Ouverture/fermeture via scènes Home Assistant.', z:[['nodonRS',1]], s:[['shelly2pm',1]]},
+  {zone:'RDC — Capteur ouverture fenêtre', need:'Alerte Home Assistant + éventuellement coupure chauffage/clim. Shelly BLU nécessite un proxy Bluetooth Shelly alimenté.', z:[['sonoffDoor',1]], s:[['shellyDoor',1]]}
+];
+
+const options = [
+  {id:'dimmer',qty:1, label:'Option — si spots/plafonds 230 V dimmables'},
+  {id:'sunDim',qty:1, label:'Option Zigbee — variateur spots/plafonds 230 V'},
+  {id:'proRgbww',qty:1, label:'Option Shelly — contrôleur Pro pour grosse zone RGBW (chambre 12 m)'}
+];
+
+const ledZones = [
+  {
+    zone:'ÉTAGE — Chambre plafond RGBW 12 m',
+    need:'COB recommandé pour une ligne continue. 12 m × 18 W/m ≈ 216 W : alimentation 320 W conseillée. Avec Shelly Plus RGBW PM (240 W max théorique), la charge est trop proche de la limite pratique : préférer Shelly Pro RGBWW PM ou scinder en 2 contrôleurs.',
+    rec:[['ledYphixRgbw20',3]], alt:[['ledYphixRgbw65',3]], power:[['psu320',1]], profile:[['profileMatera',12]]
+  },
+  {
+    zone:'ÉTAGE — Balnéo RGBW 7 m',
+    need:'Zone humide : minimum IP65 si le ruban est protégé des projections directes. IP67 si exposition plus sévère. 7 m × 18 W/m ≈ 126 W.',
+    rec:[['ledYphixRgbw65',2]], alt:[['ledIntegratechRgbw67',2]], power:[['psu200',1]], profile:[['profileMatera',7]]
+  },
+  {
+    zone:'ÉTAGE — Secret Room RGBW 8 m',
+    need:'COB RGBW pour ligne continue et vrai blanc chaud. 8 m × 18 W/m ≈ 144 W. Deux branches de 4 m recommandées.',
+    rec:[['ledYphixRgbw20',2]], alt:[['ledYphixRgbw65',2]], power:[['psu200',1]], profile:[['profileMatera',8]]
+  },
+  {
+    zone:'RDC — Plinthes blanc chaud 7 m + 3 m',
+    need:'Deux branches indépendantes sur la même alimentation. Pour une lumière d’ambiance au sol, 2700–3000 K et IRC ≥90. La référence Ledkia 10 W/m limite puissance et chauffe.',
+    rec:[['ledLedkiaWarm65',2]], alt:[['ledYphixWarm20',2]], power:[['psu150',1],['psu200',1]], profile:[['profileTarenta',10]]
+  },
+  {
+    zone:'RDC — SDB blanc chaud ~10 m',
+    need:'Humidité : IP65 minimum, IP68 si vous voulez surdimensionner la protection. Pour ~10 m : 100 W avec Ledkia 10 W/m ou 160 W avec Yphix 16 W/m.',
+    rec:[['ledYphixWarm68',2]], alt:[['ledLedkiaWarm65',2]], power:[['psu200',1],['psu150',1]], profile:[['profileMatera',10]]
+  }
+];
+
+let lineCounter = 0;
+const lineRefs = [];
+
+function euro(v){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
+function makeLine(productId, qty, context, ecosystem){
+  const p = products[productId];
+  const uid = 'l'+(++lineCounter);
+  lineRefs.push({uid,productId,context,ecosystem});
+  const tag = ecosystem==='Zigbee' ? '<span class="tag z">Zigbee</span>' : ecosystem==='Shelly' ? '<span class="tag s">Shelly</span>' : '<span class="tag">'+ecosystem+'</span>';
+  return `<div class="product" id="box-${uid}">
+    <input type="checkbox" id="sel-${uid}" data-uid="${uid}" onchange="calc()">
+    <div><div class="name">${p.name}</div><div class="meta">${p.desc}</div>${tag}<br><a href="${p.link}" target="_blank" rel="noopener">Voir le produit ↗</a></div>
+    <input type="number" min="0" step="1" value="${qty}" id="qty-${uid}" title="Quantité" oninput="calc()">
+    <input type="number" min="0" step="0.01" value="${p.price}" id="price-${uid}" title="Prix unitaire HT" oninput="calc()">
+    <div class="subtotal" id="sub-${uid}">0,00 €</div>
+  </div>`;
+}
+
+function render(){
+  document.getElementById('quoteDate').value = new Date().toLocaleDateString('fr-FR');
+  document.getElementById('archItems').innerHTML = architecture.map(a => makeLine(a.id,a.qty,'Architecture','Architecture')).join('');
+  document.getElementById('optionItems').innerHTML = options.map(o => `<div><h3>${o.label}</h3>${makeLine(o.id,o.qty,o.label,products[o.id].brand==='Zigbee'?'Zigbee':'Shelly')}</div>`).join('');
+  document.getElementById('zoneRows').innerHTML = zones.map((z,idx)=>{
+    const zig = z.z.length ? z.z.map(([id,q])=>makeLine(id,q,z.zone,'Zigbee')).join('') : `<div class="muted">Aucun module Zigbee à ajouter.<br><a href="https://www.samsung.com/fr/smartthings/" target="_blank">Samsung SmartThings ↗</a></div>`;
+    const sh = z.s.length ? z.s.map(([id,q])=>makeLine(id,q,z.zone,'Shelly')).join('') : `<div class="muted">Aucun module Shelly à ajouter.<br><a href="https://www.samsung.com/fr/smartthings/" target="_blank">Samsung SmartThings ↗</a></div>`;
+    return `<tr><td class="zone">${z.zone}</td><td class="need">${z.need}</td><td>${zig}</td><td>${sh}</td></tr>`;
+  }).join('');
+  document.getElementById('ledRows').innerHTML = ledZones.map(z=>{
+    const rec = z.rec.map(([id,q])=>makeLine(id,q,z.zone,'LED recommandé')).join('');
+    const alt = z.alt.map(([id,q])=>makeLine(id,q,z.zone,'LED alternative')).join('');
+    const pwr = z.power.map(([id,q],i)=>makeLine(id,q,z.zone,i===0?'Alimentation recommandée':'Alimentation alternative')).join('');
+    const prof = z.profile.map(([id,q])=>makeLine(id,q,z.zone,'Profil')).join('');
+    return `<tr><td class="zone">${z.zone}</td><td class="need">${z.need}</td><td>${rec}</td><td>${alt}</td><td>${pwr}${prof}</td></tr>`;
+  }).join('');
+  calc();
+}
+
+function calc(){
+  let total=0, selected=[]; let anyZigbee=false; let greenSelected=false; let zbtSelected=false; let anyScreen=false;
+  lineRefs.forEach(ref=>{
+    const checked=document.getElementById('sel-'+ref.uid).checked;
+    const qty=Number(document.getElementById('qty-'+ref.uid).value)||0;
+    const price=Number(document.getElementById('price-'+ref.uid).value)||0;
+    const sub=checked ? qty*price : 0;
+    document.getElementById('sub-'+ref.uid).textContent=euro(sub);
+    document.getElementById('box-'+ref.uid).classList.toggle('selected',checked);
+    if(checked){
+      total+=sub; selected.push({...ref,qty,price,sub});
+      if(products[ref.productId].zigbee) anyZigbee=true;
+      if(ref.productId==='green') greenSelected=true;
+      if(ref.productId==='zbt2') zbtSelected=true;
+      if(ref.productId==='x1i'||ref.productId==='x2i') anyScreen=true;
+    }
+  });
+  const discountPct=Number(document.getElementById('discount').value)||0;
+  const discount=total*discountPct/100;
+  const afterDiscount=total-discount;
+  const vatRate=Number(document.getElementById('vatRate').value)||0;
+  const vat=afterDiscount*vatRate/100;
+  const ttc=afterDiscount+vat;
+  document.getElementById('totalHT').textContent=euro(afterDiscount);
+  document.getElementById('totalTVA').textContent=euro(vat);
+  document.getElementById('totalTTC').textContent=euro(ttc);
+  document.getElementById('sumHT').textContent=euro(total);
+  document.getElementById('sumDiscount').textContent='− '+euro(discount);
+  document.getElementById('sumTVA').textContent=euro(vat);
+  document.getElementById('sumTTC').textContent=euro(ttc);
+  document.getElementById('zigbeeWarning').classList.toggle('show', anyZigbee && !zbtSelected);
+  document.getElementById('haWarning').classList.toggle('show', anyScreen && !greenSelected);
+  renderSummary(selected,total,discount,vat,ttc);
+}
+
+function renderSummary(selected,total,discount,vat,ttc){
+  const el=document.getElementById('summary');
+  if(!selected.length){el.innerHTML='<div class="summary-empty">Aucun produit sélectionné.</div>';return;}
+  el.innerHTML = selected.map(x=>`<div class="quote-row"><div><strong>${products[x.productId].name}</strong><div class="muted" style="font-size:12px">${x.context}</div></div><div class="right">× ${x.qty}</div><div class="right">${euro(x.price)}</div><div class="right"><strong>${euro(x.sub)}</strong></div></div>`).join('');
+}
+
+function setByEcosystem(type){
+  lineRefs.forEach(ref=>{
+    const cb=document.getElementById('sel-'+ref.uid);
+    if(ref.context==='Architecture'){
+      cb.checked = (ref.productId==='green' || ref.productId==='x2i' || ref.productId==='x1i' || (type==='Zigbee'&&ref.productId==='zbt2'));
+    } else if(ref.ecosystem===type) cb.checked=true;
+    else if(ref.ecosystem==='Zigbee'||ref.ecosystem==='Shelly') cb.checked=false;
+  }); calc();
+}
+function selectShelly(){setByEcosystem('Shelly')}
+function selectZigbee(){setByEcosystem('Zigbee')}
+function selectRecommendedLED(){
+  lineRefs.forEach(r=>{
+    if(['LED recommandé','LED alternative','Alimentation recommandée','Alimentation alternative','Profil'].includes(r.ecosystem)){
+      document.getElementById('sel-'+r.uid).checked = (r.ecosystem==='LED recommandé' || r.ecosystem==='Alimentation recommandée');
+    }
+  });
+  calc();
+}
+function clearSelection(){lineRefs.forEach(r=>document.getElementById('sel-'+r.uid).checked=false);calc()}
+
+function saveLocal(){
+  const state={vat:vatRate.value,discount:discount.value,name:quoteName.value,date:quoteDate.value,notes:notes.value,lines:{}};
+  lineRefs.forEach(r=>state.lines[r.uid]={sel:document.getElementById('sel-'+r.uid).checked,qty:qtyEl(r.uid).value,price:priceEl(r.uid).value,productId:r.productId,context:r.context});
+  localStorage.setItem('loveroomDomotiqueQuote',JSON.stringify(state)); alert('Devis sauvegardé dans ce navigateur.');
+}
+function loadLocal(){
+  const raw=localStorage.getItem('loveroomDomotiqueQuote'); if(!raw){alert('Aucune sauvegarde trouvée.');return}
+  const s=JSON.parse(raw); vatRate.value=s.vat??20;discount.value=s.discount??0;quoteName.value=s.name??'';quoteDate.value=s.date??'';notes.value=s.notes??'';
+  Object.values(s.lines||{}).forEach(saved=>{
+    const ref=lineRefs.find(r=>r.productId===saved.productId && r.context===saved.context);
+    if(ref){document.getElementById('sel-'+ref.uid).checked=!!saved.sel;qtyEl(ref.uid).value=saved.qty;priceEl(ref.uid).value=saved.price;}
+  }); calc();
+}
+function qtyEl(uid){return document.getElementById('qty-'+uid)}
+function priceEl(uid){return document.getElementById('price-'+uid)}
+
+function exportCSV(){
+  const rows=[['Produit','Contexte','Ecosystème','Quantité','PU HT','Sous-total HT']];
+  lineRefs.forEach(r=>{if(document.getElementById('sel-'+r.uid).checked){const q=Number(qtyEl(r.uid).value)||0,p=Number(priceEl(r.uid).value)||0;rows.push([products[r.productId].name,r.context,r.ecosystem,q,p,(q*p).toFixed(2)])}});
+  const csv=rows.map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='devis_domotique_loveroom.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+['vatRate','discount'].forEach(id=>document.addEventListener('input',e=>{if(e.target.id===id)calc()}));
+render();
+</script>
+</body>
+</html>
