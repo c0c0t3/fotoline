@@ -33,13 +33,20 @@
   tr:last-child td{border-bottom:0}
   .zone{font-weight:800;color:var(--gold2);min-width:180px}
   .need{color:#4e4b47;font-size:13px}
-  .product{display:grid;grid-template-columns:auto 1fr 84px 108px 110px;gap:8px;align-items:center;background:#fbfaf7;border:1px solid #ddd8cf;border-radius:10px;padding:9px;margin-bottom:8px}
+  .product{display:flex;flex-direction:column;gap:9px;background:#fbfaf7;border:1px solid #ddd8cf;border-radius:12px;padding:13px;margin-bottom:10px}
   .product:last-child{margin-bottom:0}
   .product.selected{border-color:var(--gold);box-shadow:0 0 0 1px rgba(199,161,90,.22) inset}
-  .product .name{font-weight:700}
-  .product .meta{font-size:12px;color:var(--muted)}
+  .product-head{display:flex;align-items:flex-start;gap:9px}
+  .product-title{flex:1;min-width:0}
+  .product .name{font-weight:800;font-size:14px;line-height:1.25;color:#3f3525}
+  .product .meta{font-size:12px;color:var(--muted);line-height:1.4}
+  .product-link{font-size:12px;margin-top:2px}
   .product a{color:var(--gold2);text-decoration:none}
   .product a:hover{text-decoration:underline}
+  .product-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:4px;border-top:1px solid #e5dfd5}
+  .field{min-width:0}
+  .field label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.045em;color:#8a8175;margin-bottom:4px}
+  .field .subtotal{height:37px;display:flex;align-items:center;justify-content:flex-end;padding:8px;background:#fff;border:1px solid #cbc5bb;border-radius:8px}
   input[type="checkbox"]{width:19px;height:19px;accent-color:var(--gold)}
   input[type="number"], input[type="text"], select, textarea{width:100%;background:var(--input);border:1px solid #cbc5bb;color:var(--text);border-radius:8px;padding:8px}
   input[type="number"]{text-align:right}
@@ -61,7 +68,7 @@
   .arch .product{grid-template-columns:auto 1fr 80px 108px 110px}
   .footer-note{font-size:12px;color:var(--muted);margin-top:18px}
   @media (max-width:1000px){
-    .product{grid-template-columns:auto 1fr 72px 96px}.product .subtotal{grid-column:2/5}.grid,.smallgrid,.arch{grid-template-columns:1fr}.totals{margin-left:0}.toolbar{position:static}
+    .product-controls{grid-template-columns:1fr 1fr}.product-controls .field:last-child{grid-column:1/-1}.grid,.smallgrid,.arch{grid-template-columns:1fr}.totals{margin-left:0}.toolbar{position:static}
     table,thead,tbody,tr,th,td{display:block} thead{display:none} tr{border-bottom:1px solid var(--line)} td{border:0;padding:8px 10px}.zone{padding-top:14px}
   }
   @media print{
@@ -247,11 +254,30 @@ function makeLine(productId, qty, context, ecosystem){
   const tag = ecosystem==='Zigbee' ? '<span class="tag z">Zigbee</span>' : ecosystem==='Shelly' ? '<span class="tag s">Shelly</span>' : '<span class="tag">'+ecosystem+'</span>';
   const why = (ecosystem && ecosystem.toLowerCase().includes('recommand') && p.reco) ? `<div class="why"><strong>Pourquoi recommandé :</strong> ${p.reco}</div>` : '';
   return `<div class="product" id="box-${uid}">
-    <input type="checkbox" id="sel-${uid}" data-uid="${uid}" onchange="calc()">
-    <div><div class="name">${p.name}</div><div class="meta">${p.desc}</div>${why}${tag}<br><a href="${p.link}" target="_blank" rel="noopener">Voir le produit ↗</a></div>
-    <input type="number" min="0" step="1" value="${qty}" id="qty-${uid}" title="Quantité" oninput="calc()">
-    <input type="number" min="0" step="0.01" value="${p.price}" id="price-${uid}" title="Prix unitaire HT" oninput="calc()">
-    <div class="subtotal" id="sub-${uid}">0,00 €</div>
+    <div class="product-head">
+      <input type="checkbox" id="sel-${uid}" data-uid="${uid}" onchange="calc()">
+      <div class="product-title">
+        <div class="name">${p.name}</div>
+        <div>${tag}</div>
+      </div>
+    </div>
+    <div class="meta">${p.desc}</div>
+    ${why}
+    <div class="product-link"><a href="${p.link}" target="_blank" rel="noopener">Voir le produit ↗</a></div>
+    <div class="product-controls">
+      <div class="field">
+        <label for="qty-${uid}">Quantité</label>
+        <input type="number" min="0" step="1" value="${qty}" id="qty-${uid}" oninput="calc()">
+      </div>
+      <div class="field">
+        <label for="price-${uid}">Prix unitaire HT</label>
+        <input type="number" min="0" step="0.01" value="${p.price}" id="price-${uid}" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Total HT</label>
+        <div class="subtotal" id="sub-${uid}">0,00 €</div>
+      </div>
+    </div>
   </div>`;
 }
 
